@@ -299,8 +299,8 @@ unsigned int fec_secded7264_encode(unsigned int _dec_msg_len,
 //  _msg_dec        :   decoded message [size: 1 x _dec_msg_len]
 //
 unsigned int fec_secded7264_decode(unsigned int _dec_msg_len,
-                                    unsigned char *_msg_enc,
-                                    unsigned char *_msg_dec)
+                                   unsigned char *_msg_enc,
+                                   unsigned char *_msg_dec)
 {
     unsigned int i = 0;     // decoded byte counter
     unsigned int j = 0;     // encoded byte counter
