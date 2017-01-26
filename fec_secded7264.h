@@ -25,12 +25,15 @@ unsigned int fec_secded7264_encode(unsigned int dec_msg_len,
  *
  * Outputs:
  * msg_dec      decoded original mesasage data gets put here
+ * num_errors   number of unrecoverable errors encountered in decoding
+ *              (can be NULL)
  *
  * Returns:
- * Number of unrecoverable errors encountered in decoding
+ * Size of decoded message in bytes
  */
 unsigned int fec_secded7264_decode(unsigned int enc_msg_len,
                                    const unsigned char *msg_enc,
-                                   unsigned char *msg_dec);
+                                   unsigned char *msg_dec,
+                                   unsigned int *num_errors);
 
 #endif

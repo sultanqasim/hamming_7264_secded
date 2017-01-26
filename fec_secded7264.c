@@ -301,7 +301,8 @@ unsigned int fec_secded7264_encode(unsigned int _dec_msg_len,
 //
 unsigned int fec_secded7264_decode(unsigned int _enc_msg_len,
                                    const unsigned char *_msg_enc,
-                                   unsigned char *_msg_dec)
+                                   unsigned char *_msg_dec,
+                                   unsigned int *_num_errors)
 {
     unsigned int i = 0;     // decoded byte counter
     unsigned int j = 0;     // encoded byte counter
@@ -341,5 +342,8 @@ unsigned int fec_secded7264_decode(unsigned int _enc_msg_len,
         j += r;
     }
 
-    return num_errors;
+    if (_num_errors != NULL)
+        *_num_errors = num_errors;
+
+    return i;
 }
