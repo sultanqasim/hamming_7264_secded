@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "fec_secded7264.h"
 
 // number of ones in a byte
 //  0   0000 0000   :   0
@@ -101,7 +102,7 @@ unsigned char secded7264_syndrome_w1[72] = {
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
 
 // compute parity byte on 64-byte input
-static unsigned char fec_secded7264_compute_parity(unsigned char * _v)
+static unsigned char fec_secded7264_compute_parity(const unsigned char * _v)
 {
     // compute parity byte on message
     unsigned int i;
@@ -126,7 +127,7 @@ static unsigned char fec_secded7264_compute_parity(unsigned char * _v)
 }
 
 // compute syndrome on 72-bit input
-static unsigned char fec_secded7264_compute_syndrome(unsigned char * _v)
+static unsigned char fec_secded7264_compute_syndrome(const unsigned char * _v)
 {
     // TODO : unwrap this loop
     unsigned int i;
@@ -156,7 +157,7 @@ static unsigned char fec_secded7264_compute_syndrome(unsigned char * _v)
 // detected, respectively
 //  _sym_enc    :   encoded symbol [size: 9 x 1],
 //  _e_hat      :   estimated error vector [size: 9 x 1]
-static int fec_secded7264_estimate_ehat(unsigned char * _sym_enc,
+static int fec_secded7264_estimate_ehat(const unsigned char * _sym_enc,
                                         unsigned char * _e_hat)
 {
     // clear output array
@@ -193,7 +194,7 @@ static int fec_secded7264_estimate_ehat(unsigned char * _sym_enc,
     return 2;
 }
 
-static void fec_secded7264_encode_symbol(unsigned char * _sym_dec,
+static void fec_secded7264_encode_symbol(const unsigned char * _sym_dec,
                                          unsigned char * _sym_enc)
 {
     // compute parity on input
@@ -213,7 +214,7 @@ static void fec_secded7264_encode_symbol(unsigned char * _sym_dec,
 // decode symbol, returning 0/1/2 for zero/one/multiple errors detected
 //  _sym_enc    :   encoded symbol [size: 9 x 1]
 //  _sym_dec    :   decoded symbol [size: 8 x 1]
-static int fec_secded7264_decode_symbol(unsigned char * _sym_enc,
+static int fec_secded7264_decode_symbol(const unsigned char * _sym_enc,
                                         unsigned char * _sym_dec)
 {
     // estimate error vector
@@ -250,7 +251,7 @@ static int fec_secded7264_decode_symbol(unsigned char * _sym_enc,
 //  _msg_dec        :   decoded message [size: 1 x _dec_msg_len]
 //  _msg_enc        :   encoded message [size: 1 x 2*_dec_msg_len]
 unsigned int fec_secded7264_encode(unsigned int _dec_msg_len,
-                                   unsigned char *_msg_dec,
+                                   const unsigned char *_msg_dec,
                                    unsigned char *_msg_enc)
 {
     unsigned int i = 0;     // decoded byte counter
@@ -299,7 +300,7 @@ unsigned int fec_secded7264_encode(unsigned int _dec_msg_len,
 //  _msg_dec        :   decoded message [size: 1 x _dec_msg_len]
 //
 unsigned int fec_secded7264_decode(unsigned int _dec_msg_len,
-                                   unsigned char *_msg_enc,
+                                   const unsigned char *_msg_enc,
                                    unsigned char *_msg_dec)
 {
     unsigned int i = 0;     // decoded byte counter
