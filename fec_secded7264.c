@@ -295,11 +295,11 @@ unsigned int fec_secded7264_encode(unsigned int _dec_msg_len,
 
 // decode block of data using SEC-DEC (72,64) decoder
 //
-//  _dec_msg_len    :   decoded message length (number of bytes)
+//  _enc_msg_len    :   encoded message length (number of bytes)
 //  _msg_enc        :   encoded message [size: 1 x 2*_dec_msg_len]
 //  _msg_dec        :   decoded message [size: 1 x _dec_msg_len]
 //
-unsigned int fec_secded7264_decode(unsigned int _dec_msg_len,
+unsigned int fec_secded7264_decode(unsigned int _enc_msg_len,
                                    const unsigned char *_msg_enc,
                                    unsigned char *_msg_dec)
 {
@@ -308,17 +308,16 @@ unsigned int fec_secded7264_decode(unsigned int _dec_msg_len,
     unsigned int num_errors = 0;
     unsigned int syndrome_flag;
 
-    // determine remainder of input length / 8
-    unsigned int r = _dec_msg_len % 8;
+    // determine remainder of input length
+    unsigned int r = _enc_msg_len % 9;
 
-    for (i=0; i<_dec_msg_len-r; i+=8) {
+    for (j=0; j<_enc_msg_len-r; j+=9) {
         // decode nine input bytes
         syndrome_flag = fec_secded7264_decode_symbol(&_msg_enc[j], &_msg_dec[i]);
         if (syndrome_flag == 2) num_errors++;
 
-        j += 9;
+        i += 8;
     }
-
 
     // if input length isn't divisible by 8, decode last several bytes
     if (r) {
@@ -338,8 +337,8 @@ unsigned int fec_secded7264_decode(unsigned int _dec_msg_len,
         for (n=0; n<r; n++)
             _msg_dec[i+n] = c[n];
 
-        i += r;
-        j += r+1;
+        i += r - 1;
+        j += r;
     }
 
     return num_errors;
