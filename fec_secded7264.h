@@ -42,7 +42,7 @@ unsigned int fec_secded7264_encode(unsigned int dec_msg_len,
 /* fec_secded7264_decode
  *
  * Inputs:
- * dec_msg_len  size of encoded data
+ * enc_msg_len  size of encoded data
  * msg_enc      encoded message data
  *
  * Outputs:
