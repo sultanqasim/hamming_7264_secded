@@ -46,7 +46,7 @@ unsigned int fec_secded7264_encode(unsigned int dec_msg_len,
  * msg_enc      encoded message data
  *
  * Outputs:
- * msg_dec      decoded original mesasage data gets put here
+ * msg_dec      decoded original message data gets put here
  * num_errors   number of unrecoverable errors encountered in decoding
  *              (can be NULL)
  *
@@ -57,5 +57,23 @@ unsigned int fec_secded7264_decode(unsigned int enc_msg_len,
                                    const unsigned char *msg_enc,
                                    unsigned char *msg_dec,
                                    unsigned int *num_errors);
+
+/* fec_secded7264_decode_lazy
+ *
+ * Inputs:
+ * enc_msg_len  size of encoded data
+ * msg_enc      encoded message data
+ *
+ * Outputs:
+ * msg_dec      decoded original message data gets put here
+ *              this function is lazy and doesn't actually do anything
+ *              to fix corrupt data
+ *
+ * Returns:
+ * Size of decoded message in bytes
+ */
+unsigned int fec_secded7264_decode_lazy(unsigned int enc_msg_len,
+                                        const unsigned char *msg_enc,
+                                        unsigned char *msg_dec);
 
 #endif

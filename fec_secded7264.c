@@ -347,3 +347,20 @@ unsigned int fec_secded7264_decode(unsigned int _enc_msg_len,
 
     return i;
 }
+
+// doesn't actually do code checking, just assumes no corruption
+unsigned int fec_secded7264_decode_lazy(unsigned int _enc_msg_len,
+                                        const unsigned char *_msg_enc,
+                                        unsigned char *_msg_dec)
+{
+    unsigned int i = 0;     // decoded byte counter
+    unsigned int j = 0;     // encoded byte counter
+
+    // I could unroll this but I'm lazy
+    while (j < _enc_msg_len) {
+        if ((i&7) == 0) j++; // skip parity byte
+        _msg_dec[i++] =_msg_enc[j++];
+    }
+
+    return i;
+}
