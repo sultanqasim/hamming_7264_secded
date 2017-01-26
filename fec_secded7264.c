@@ -88,9 +88,8 @@ unsigned char secded7264_syndrome_w1[72] = {
     0x91, 0x92, 0x94, 0x98, 0xe0, 0xec, 0xdc, 0xd0,
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
 
-
 // compute parity byte on 64-byte input
-unsigned char fec_secded7264_compute_parity(unsigned char * _v)
+static unsigned char fec_secded7264_compute_parity(unsigned char * _v)
 {
     // compute parity byte on message
     unsigned int i;
@@ -115,7 +114,7 @@ unsigned char fec_secded7264_compute_parity(unsigned char * _v)
 }
 
 // compute syndrome on 72-bit input
-unsigned char fec_secded7264_compute_syndrome(unsigned char * _v)
+static unsigned char fec_secded7264_compute_syndrome(unsigned char * _v)
 {
     // TODO : unwrap this loop
     unsigned int i;
@@ -141,8 +140,49 @@ unsigned char fec_secded7264_compute_syndrome(unsigned char * _v)
     return syndrome;
 }
 
-void fec_secded7264_encode_symbol(unsigned char * _sym_dec,
-                                  unsigned char * _sym_enc)
+// estimate error vector, returning 0/1/2 for zero/one/multiple errors
+// detected, respectively
+//  _sym_enc    :   encoded symbol [size: 9 x 1],
+//  _e_hat      :   estimated error vector [size: 9 x 1]
+static int fec_secded7264_estimate_ehat(unsigned char * _sym_enc,
+                                        unsigned char * _e_hat)
+{
+    // clear output array
+    memset(_e_hat, 0x00, 9*sizeof(unsigned char));
+
+    // compute syndrome vector, s = r*H^T = ( H*r^T )^T
+    unsigned char s = fec_secded7264_compute_syndrome(_sym_enc);
+
+    // compute weight of s
+    unsigned int ws = liquid_c_ones[s];
+
+    if (ws == 0) {
+        // no errors detected
+        return 0;
+    } else {
+        // estimate error location; search for syndrome with error
+        // vector of weight one
+
+        unsigned int n;
+        // estimate error location
+        for (n=0; n<72; n++) {
+            if (s == secded7264_syndrome_w1[n]) {
+                // single error detected at location 'n'
+                div_t d = div(n,8);
+                _e_hat[9-d.quot-1] = 1 << d.rem;
+
+                return 1;
+            }
+        }
+
+    }
+
+    // no syndrome match; multiple errors detected
+    return 2;
+}
+
+static void fec_secded7264_encode_symbol(unsigned char * _sym_dec,
+                                         unsigned char * _sym_enc)
 {
     // compute parity on input
     _sym_enc[0] = fec_secded7264_compute_parity(_sym_dec);
@@ -161,8 +201,8 @@ void fec_secded7264_encode_symbol(unsigned char * _sym_dec,
 // decode symbol, returning 0/1/2 for zero/one/multiple errors detected
 //  _sym_enc    :   encoded symbol [size: 9 x 1]
 //  _sym_dec    :   decoded symbol [size: 8 x 1]
-int fec_secded7264_decode_symbol(unsigned char * _sym_enc,
-                                 unsigned char * _sym_dec)
+static int fec_secded7264_decode_symbol(unsigned char * _sym_enc,
+                                        unsigned char * _sym_dec)
 {
     // estimate error vector
     unsigned char e_hat[9] = {0,0,0,0,0,0,0,0,0};
@@ -192,78 +232,12 @@ int fec_secded7264_decode_symbol(unsigned char * _sym_enc,
     return syndrome_flag;
 }
 
-// estimate error vector, returning 0/1/2 for zero/one/multiple errors
-// detected, respectively
-//  _sym_enc    :   encoded symbol [size: 9 x 1],
-//  _e_hat      :   estimated error vector [size: 9 x 1]
-int fec_secded7264_estimate_ehat(unsigned char * _sym_enc,
-                                 unsigned char * _e_hat)
-{
-    // clear output array
-    memset(_e_hat, 0x00, 9*sizeof(unsigned char));
-
-    // compute syndrome vector, s = r*H^T = ( H*r^T )^T
-    unsigned char s = fec_secded7264_compute_syndrome(_sym_enc);
-
-    // compute weight of s
-    unsigned int ws = liquid_c_ones[s];
-    
-    if (ws == 0) {
-        // no errors detected
-        return 0;
-    } else {
-        // estimate error location; search for syndrome with error
-        // vector of weight one
-
-        unsigned int n;
-        // estimate error location
-        for (n=0; n<72; n++) {
-            if (s == secded7264_syndrome_w1[n]) {
-                // single error detected at location 'n'
-                div_t d = div(n,8);
-                _e_hat[9-d.quot-1] = 1 << d.rem;
-
-                return 1;
-            }
-        }
-
-    }
-
-    // no syndrome match; multiple errors detected
-    return 2;
-}
-
-// create SEC-DED (72,64) codec object
-fec fec_secded7264_create(void * _opts)
-{
-    fec q = (fec) malloc(sizeof(struct fec_s));
-
-    // set scheme
-    q->scheme = LIQUID_FEC_SECDED7264;
-    q->rate = fec_get_rate(q->scheme);
-
-    // set internal function pointers
-    q->encode_func      = &fec_secded7264_encode;
-    q->decode_func      = &fec_secded7264_decode;
-    q->decode_soft_func = NULL;
-
-    return q;
-}
-
-// destroy SEC-DEC (72,64) object
-void fec_secded7264_destroy(fec _q)
-{
-    free(_q);
-}
-
 // encode block of data using SEC-DEC (72,64) encoder
 //
-//  _q              :   encoder/decoder object
 //  _dec_msg_len    :   decoded message length (number of bytes)
 //  _msg_dec        :   decoded message [size: 1 x _dec_msg_len]
 //  _msg_enc        :   encoded message [size: 1 x 2*_dec_msg_len]
-void fec_secded7264_encode(fec _q,
-                           unsigned int _dec_msg_len,
+void fec_secded7264_encode(unsigned int _dec_msg_len,
                            unsigned char *_msg_dec,
                            unsigned char *_msg_enc)
 {
@@ -291,7 +265,7 @@ void fec_secded7264_encode(fec _q,
 
         // compute parity
         parity = fec_secded7264_compute_parity(v);
-        
+
         // there is no need to actually send all the bytes; the
         // last 8-r bytes are zeros and can be added at the
         // decoder
@@ -309,20 +283,18 @@ void fec_secded7264_encode(fec _q,
 
 // decode block of data using SEC-DEC (72,64) decoder
 //
-//  _q              :   encoder/decoder object
 //  _dec_msg_len    :   decoded message length (number of bytes)
 //  _msg_enc        :   encoded message [size: 1 x 2*_dec_msg_len]
 //  _msg_dec        :   decoded message [size: 1 x _dec_msg_len]
 //
 //unsigned int
-void fec_secded7264_decode(fec _q,
-                           unsigned int _dec_msg_len,
+void fec_secded7264_decode(unsigned int _dec_msg_len,
                            unsigned char *_msg_enc,
                            unsigned char *_msg_dec)
 {
     unsigned int i=0;       // decoded byte counter
     unsigned int j=0;       // encoded byte counter
-    
+
     // determine remainder of input length / 8
     unsigned int r = _dec_msg_len % 8;
 
@@ -350,7 +322,7 @@ void fec_secded7264_decode(fec _q,
         // store only relevant bytes
         for (n=0; n<r; n++)
             _msg_dec[i+n] = c[n];
-        
+
         i += r;
         j += r+1;
     }
