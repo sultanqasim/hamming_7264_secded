@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "liquid.internal.h"
 
@@ -276,9 +275,6 @@ void fec_secded7264_encode(unsigned int _dec_msg_len,
         i += r;
         j += r+1;
     }
-
-    assert( j == fec_get_enc_msg_length(LIQUID_FEC_SECDED7264,_dec_msg_len) );
-    assert( i == _dec_msg_len);
 }
 
 // decode block of data using SEC-DEC (72,64) decoder
@@ -326,9 +322,6 @@ void fec_secded7264_decode(unsigned int _dec_msg_len,
         i += r;
         j += r+1;
     }
-
-    assert( j == fec_get_enc_msg_length(LIQUID_FEC_SECDED7264,_dec_msg_len) );
-    assert( i == _dec_msg_len);
 
     //return num_errors;
 }
