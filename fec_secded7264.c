@@ -249,9 +249,9 @@ static int fec_secded7264_decode_symbol(unsigned char * _sym_enc,
 //  _dec_msg_len    :   decoded message length (number of bytes)
 //  _msg_dec        :   decoded message [size: 1 x _dec_msg_len]
 //  _msg_enc        :   encoded message [size: 1 x 2*_dec_msg_len]
-void fec_secded7264_encode(unsigned int _dec_msg_len,
-                           unsigned char *_msg_dec,
-                           unsigned char *_msg_enc)
+unsigned int fec_secded7264_encode(unsigned int _dec_msg_len,
+                                   unsigned char *_msg_dec,
+                                   unsigned char *_msg_enc)
 {
     unsigned int i = 0;     // decoded byte counter
     unsigned int j = 0;     // encoded byte counter
@@ -288,6 +288,8 @@ void fec_secded7264_encode(unsigned int _dec_msg_len,
         i += r;
         j += r+1;
     }
+
+    return j;
 }
 
 // decode block of data using SEC-DEC (72,64) decoder
