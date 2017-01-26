@@ -1,0 +1,10 @@
+Hamming (72,64) code SECDED FEC software implementation
+
+Based on implementation in liquid-dsp by Joseph Gaeddert
+https://github.com/jgaeddert/liquid-dsp/blob/master/src/fec/src/fec_secded7264.c
+
+Adapted by me (Sultan Qasim Khan) to be standalone and with somewhat
+different usage semantics (return size of encoded/decoded data, and
+optionally report number of errors in decoding).
+
+The implementation is MIT licensed just as the original.
