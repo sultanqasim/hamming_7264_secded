@@ -253,8 +253,8 @@ void fec_secded7264_encode(unsigned int _dec_msg_len,
                            unsigned char *_msg_dec,
                            unsigned char *_msg_enc)
 {
-    unsigned int i=0;       // decoded byte counter
-    unsigned int j=0;       // encoded byte counter
+    unsigned int i = 0;     // decoded byte counter
+    unsigned int j = 0;     // encoded byte counter
     unsigned char parity;   // parity byte
 
     // determine remainder of input length / 8
@@ -296,20 +296,22 @@ void fec_secded7264_encode(unsigned int _dec_msg_len,
 //  _msg_enc        :   encoded message [size: 1 x 2*_dec_msg_len]
 //  _msg_dec        :   decoded message [size: 1 x _dec_msg_len]
 //
-//unsigned int
-void fec_secded7264_decode(unsigned int _dec_msg_len,
-                           unsigned char *_msg_enc,
-                           unsigned char *_msg_dec)
+unsigned int fec_secded7264_decode(unsigned int _dec_msg_len,
+                                    unsigned char *_msg_enc,
+                                    unsigned char *_msg_dec)
 {
-    unsigned int i=0;       // decoded byte counter
-    unsigned int j=0;       // encoded byte counter
+    unsigned int i = 0;     // decoded byte counter
+    unsigned int j = 0;     // encoded byte counter
+    unsigned int num_errors = 0;
+    unsigned int syndrome_flag;
 
     // determine remainder of input length / 8
     unsigned int r = _dec_msg_len % 8;
 
     for (i=0; i<_dec_msg_len-r; i+=8) {
         // decode nine input bytes
-        fec_secded7264_decode_symbol(&_msg_enc[j], &_msg_dec[i]);
+        syndrome_flag = fec_secded7264_decode_symbol(&_msg_enc[j], &_msg_dec[i]);
+        if (syndrome_flag == 2) num_errors++;
 
         j += 9;
     }
@@ -326,7 +328,8 @@ void fec_secded7264_decode(unsigned int _dec_msg_len,
             v[n] = _msg_enc[j+n];
 
         // decode symbol
-        fec_secded7264_decode_symbol(v,c);
+        syndrome_flag = fec_secded7264_decode_symbol(v,c);
+        if (syndrome_flag == 2) num_errors++;
 
         // store only relevant bytes
         for (n=0; n<r; n++)
@@ -336,5 +339,5 @@ void fec_secded7264_decode(unsigned int _dec_msg_len,
         j += r+1;
     }
 
-    //return num_errors;
+    return num_errors;
 }
