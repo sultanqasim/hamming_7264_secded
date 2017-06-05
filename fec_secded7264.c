@@ -326,8 +326,8 @@ unsigned int fec_secded7264_decode(unsigned int _enc_msg_len,
         unsigned char c[8] = {0,0,0,0,0,0,0,0};     // decoded message
 
         unsigned int n;
-        // output length is input + 1 (parity byte)
-        for (n=0; n<r+1; n++)
+        // copy the remaining bytes to local buffer v
+        for (n=0; n<r; n++)
             v[n] = _msg_enc[j+n];
 
         // decode symbol
